@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+if ! [ -z ${1+x} ]; then
+  export SRV_NAME=${1}
+fi
+
+if [ -z "$SRV_NAME" ]; then
+  echo "you must specify a server name either by passing a parameter or setting SRV_NAME"
+  exit 1
+fi
+
+echo "Deleting server"
+
+export VMIP=`rack servers instance get --name "$SRV_NAME" --fields=publicipv4 | cut -d $'\t' -f2`
+echo "VMIP=$VMIP"
+
+echo "Removing server from ssh config"
+sed -i .bak '/host '$SRV_NAME'/ {N;N;d;}' $HOME/.ssh/config
+
+echo "Removing ssh key from known_hosts"
+ssh-keygen -f "$HOME/.ssh/known_hosts" -R $VMIP
+
+rack servers instance delete --name="$SRV_NAME"
+
+STATUS=`rack servers instance get --name "$SRV_NAME" --fields=status`
+echo status is $STATUS
+while [ "$STATUS" == "Status	ACTIVE" ]; do
+  sleep 15
+  STATUS=`rack servers instance get --name "$SRV_NAME" --fields=status`
+  echo "status is still: $STATUS, sleeping for 15 seconds" 
+done
+
+echo "Server Deleted"

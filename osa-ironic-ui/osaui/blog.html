@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+For reasons too long to go into I recently had a need to create a VM that booted from a volume on the Rackspace Public Cloud.<br />
+<br />
+This is fairly easy to achieve from the web interface - a couple of mouse clicks and you're done.<br />
+<br />
+It's also possible from the <span style="font-family: &quot;courier new&quot; , &quot;courier&quot; , monospace;">rack</span> cli&nbsp;tool. Something like:<br />
+<br />
+<span style="font-family: &quot;courier new&quot; , &quot;courier&quot; , monospace;">rack servers instance create --name=test-yy \</span><br />
+<span style="font-family: &quot;courier new&quot; , &quot;courier&quot; , monospace;">&nbsp; &nbsp;--flavor-id=io1-15 \</span><br />
+<span style="font-family: &quot;courier new&quot; , &quot;courier&quot; , monospace;">&nbsp; &nbsp;--block-device="source-type=image,source-id=1d3ea64f-1ead-4042-8cb6-8ceb523b6149,destination-type=volume,volume-size=150"</span><br />
+<br />
+will do the trick.<br />
+<br />
+None of these perfectly acceptable methods were quite what I wanted so I ended up poking at pyrax and the nova client until I got a solution I could use from python.<br />
+<br />
+<pre style="background-color: #2b2b2b; font-family: Menlo; font-size: 9pt;"><span style="font-size: 9pt; font-weight: bold;"><span style="color: #cccccc;"> </span><span style="color: #eeeeee;">1</span></span><span style="color: #cc7832; font-size: 9pt; font-weight: bold;"> import </span><span style="color: #a9b7c6; font-size: 9pt;">pyrax
+</span><span style="color: #cccccc; font-size: 9pt; font-weight: bold;"> </span><span style="color: #eeeeee; font-size: 9pt; font-weight: bold;">2</span><span style="color: #cccccc; font-size: 9pt; font-weight: bold;">
+</span><span style="color: #cccccc; font-size: 9pt; font-weight: bold;"> </span><span style="color: #eeeeee; font-size: 9pt; font-weight: bold;">3</span><span style="color: #cccccc; font-size: 9pt; font-weight: bold;"> </span><span style="color: #cc7832; font-size: 9pt; font-weight: bold;">def </span><span style="color: #a9b7c6; font-size: 9pt; font-weight: bold;">create_server</span><span style="color: #a9b7c6; font-size: 9pt;">(name</span><span style="color: #cc7832; font-size: 9pt;">, </span><span style="color: #a9b7c6; font-size: 9pt;">keypair):
+</span><span style="color: #a9b7c6; font-size: 9pt;"> </span><span style="color: #eeeeee; font-size: 9pt; font-weight: bold;">4</span><span style="color: #cccccc; font-size: 9pt; font-weight: bold;"> </span><span style="color: #a9b7c6; font-size: 9pt;">    pyrax.set_credential_file(</span><span style="color: teal; font-size: 9pt;">"/path/to/pyraxcreds"</span><span style="color: #a9b7c6; font-size: 9pt;">)</span></pre>
+<pre style="background-color: #2b2b2b; font-family: menlo; font-size: 9pt;"><span style="color: #cccccc; font-size: 9pt; font-weight: bold;">
+</span><span style="color: #eeeeee; font-size: 9pt; font-weight: bold;">5</span><span style="color: #cccccc; font-size: 9pt; font-weight: bold;"> </span><span style="color: #a9b7c6;">    nova = pyrax.cloudservers
+</span><span style="color: #cccccc; font-size: 9pt; font-weight: bold;"> 6 </span><span style="color: #a9b7c6;">    bdm = {
+</span><span style="color: #cccccc; font-size: 9pt; font-weight: bold;"> 7 </span><span style="color: #a9b7c6;">        </span><span style="color: teal;">'source_type'</span><span style="color: #a9b7c6;">: </span><span style="color: teal;">'image'</span><span style="color: #cc7832;"><span style="color: #a9b7c6;">,</span>
+</span><span style="color: #cccccc; font-size: 9pt; font-weight: bold;"> 8 </span><span style="color: #cc7832; font-size: 9pt;">        </span><span style="color: teal; font-size: 9pt;">'uuid'</span><span style="color: #a9b7c6; font-size: 9pt;">: </span><span style="color: teal; font-size: 9pt;">'1d3ea64f-1ead-4042-8cb6-8ceb523b6149'</span><span style="font-size: 9pt;"><span style="color: #a9b7c6;">,
+</span></span><span style="color: #cccccc; font-size: 9pt; font-weight: bold;"> 9 </span><span style="color: #cc7832; font-size: 9pt;">        </span><span style="color: teal; font-size: 9pt;">'destination_type'</span><span style="color: #a9b7c6; font-size: 9pt;">: </span><span style="color: teal; font-size: 9pt;">'volume'</span><span style="color: #cc7832; font-size: 9pt;">,
+</span><span style="color: #cccccc; font-size: 9pt; font-weight: bold;">10 </span><span style="color: #cc7832; font-size: 9pt;">        </span><span style="color: teal; font-size: 9pt;">'volume_size'</span><span style="color: #a9b7c6; font-size: 9pt;">: </span><span style="color: teal; font-size: 9pt;">'150'</span><span style="color: #cc7832; font-size: 9pt;">,
+</span><span style="color: #cccccc; font-size: 9pt; font-weight: bold;">11 </span><span style="color: #cc7832; font-size: 9pt;">        </span><span style="color: teal; font-size: 9pt;">'boot_index'</span><span style="color: #a9b7c6; font-size: 9pt;">: </span><span style="color: teal; font-size: 9pt;">'0'
+</span><span style="color: #cccccc; font-size: 9pt; font-weight: bold;">12 </span><span style="color: teal; font-size: 9pt;">    </span><span style="font-size: 9pt;"><span style="color: #a9b7c6;">}
+</span></span><span style="color: #cccccc; font-size: 9pt; font-weight: bold;">13 </span><span style="color: #a9b7c6; font-size: 9pt;">    </span></pre>
+<pre style="background-color: #2b2b2b; font-family: menlo; font-size: 9pt;"><span style="color: #cccccc; font-size: 9pt; font-weight: bold;">14 </span><span style="color: #a9b7c6;">    my_server = nova.servers.create(
+</span><span style="color: #cccccc; font-size: 9pt; font-weight: bold;">15 </span><span style="color: #a9b7c6;">        </span><span style="color: #aa4926;">name</span><span style="color: #a9b7c6;">=name</span><span style="color: #cc7832;"><span style="color: #a9b7c6;">,</span>
+</span><span style="color: #cccccc; font-size: 9pt; font-weight: bold;">16 </span><span style="color: #cc7832; font-size: 9pt;">        </span><span style="color: #aa4926; font-size: 9pt;">image</span><span style="color: #a9b7c6; font-size: 9pt;">=</span><span style="color: #cc7832; font-size: 9pt; font-weight: bold;">None</span><span style="color: #cc7832; font-size: 9pt;">,</span></pre>
+<pre style="background-color: #2b2b2b; color: #a9b7c6; font-family: 'Menlo'; font-size: 9.0pt;"><span style="color: #cccccc; font-size: 9pt; font-weight: bold;">17 </span><span style="color: #cc7832;">        </span><span style="color: #aa4926;">flavor</span>=<span style="color: teal;">'io1-15'</span><span style="color: #cc7832;">,</span></pre>
+<pre style="background-color: #2b2b2b; color: #a9b7c6; font-family: 'Menlo'; font-size: 9.0pt;"><span style="color: #cccccc; font-size: 9pt; font-weight: bold;">18 </span><span style="color: #cc7832;">        </span><span style="color: #aa4926;">key_name</span>=keypair<span style="color: #cc7832;">,</span></pre>
+<pre style="background-color: #2b2b2b; color: #a9b7c6; font-family: 'Menlo'; font-size: 9.0pt;"><span style="color: #cccccc; font-size: 9pt; font-weight: bold;">19 </span><span style="color: #cc7832;">        </span><span style="color: #aa4926;">block_device_mapping_v2</span>=[bdm]
+<span style="color: #cccccc; font-size: 9pt; font-weight: bold;">20 </span>    )
+<span style="color: #cccccc; font-size: 9pt; font-weight: bold;">21 </span>
+<span style="color: #cccccc; font-size: 9pt; font-weight: bold;">22 </span>    <span style="color: #8888c6;">print</span>(my_server.status)
+<pre style="font-family: Menlo; font-size: 9pt;"><span style="color: #cccccc; font-size: 9pt; font-weight: bold;">23 </span></pre>
+<pre style="font-family: Menlo; font-size: 9pt;"><span style="color: #cccccc; font-size: 9pt; font-weight: bold;">24 </span></pre>
+<span style="color: #cccccc; font-size: 9pt; font-weight: bold;">25 </span><span style="color: #cc7832; font-weight: bold;">def </span><span style="font-weight: bold;">main</span>():
+<span style="color: #cccccc; font-size: 9pt; font-weight: bold;">26 </span><span style="color: grey;">    </span>create_server(<span style="color: teal;">'test-xx'</span><span style="color: #cc7832;">, </span><span style="color: teal;">'neill'</span>)
+<pre style="font-family: Menlo; font-size: 9pt;"><span style="color: #cccccc; font-size: 9pt; font-weight: bold;">27 </span></pre>
+<span style="color: #cccccc; font-size: 9pt; font-weight: bold;">28 </span>main()</pre>
+<br />
+Taking this apart, the important bits are:<br />
+<br />
+Line 4: Before you can use pyrax you need to provide some configuration. &nbsp;Most of it can live in ~/.pyrax.cfg&nbsp;(see for an explanation of what belongs in this file), but your credentials must live elsewhere and you must tell pyrax where to find them before using pyrax to do anything. The credentials file needs to supply a username and for the Rackspace public cloud an API key.<br />
+<br />
+Line 7-11 are where the magic really happens. &nbsp;This sets up a nova block device mapping to tell it how to boot the VM. We are booting from an image with the UUID&nbsp;1d3e...6149 (which specifies an Ubuntu Xenial image in the Rackspace public cloud), the boot destination is a volume 150GB in size, and it has boot index zero (meaning it is the first boot device).<br />
+<br />
+Line 16: Even though we are supplying a boot device mapping nova requires an image parameter to be passed in here, but it will ignore the actual value.<br />
+<br />
+Line 17: is the flavor-id for the VM we are creating. &nbsp;This will vary by cloud. &nbsp;On the Rackspace public cloud you can get a list of flavors by running:<br />
+<br />
+<span style="font-family: &quot;courier new&quot; , &quot;courier&quot; , monospace;">rack servers flavor list</span><br />
+<br />
+Line 18: The name of a keypair&nbsp;known to the Rackspace public cloud so you don't need to remember the root password.<br />
+<br />
+Line 19: The nova client expects the block device mapping to be a list (presumably you can have more than one block device, but I only need the one).<br />
+<br />
+Note: as presented here this code will spew InsecureRequestWarning exceptions from the requests library. To ignore these (probably not wise) you can add the following two line to the code:<br />
+<br />
+<pre style="background-color: #2b2b2b; color: #a9b7c6; font-family: 'Menlo'; font-size: 9.0pt;"><span style="color: #cc7832; font-weight: bold;">from </span>requests.packages.urllib3.exceptions <span style="color: #cc7832; font-weight: bold;">import </span>InsecureRequestWarning
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)</pre>
+<br />
+<br />
+Hope this saves the next person some time!
+</body>
+</html>

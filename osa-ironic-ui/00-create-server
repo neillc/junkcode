@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+if ! [ -z ${1+x} ]; then
+  export SRV_NAME=${1}
+fi
+
+if [ -z "$SRV_NAME" ]; then
+  echo "you must specify a server name either by passing a parameter or setting SRV_NAME"
+  exit 1
+fi
+
+echo "Creating server"
+
+rack servers instance create --name="$SRV_NAME" --flavor-id=io1-15 --block-device="source-type=image,source-id=1d3ea64f-1ead-4042-8cb6-8ceb523b6149,destination-type=volume,volume-size=150" --keypair=neill
+
+STATUS=`rack servers instance get --name "$SRV_NAME" --fields=status`
+while [ "$STATUS" == "Status	BUILD" ]; do
+  sleep 15
+  STATUS=`rack servers instance get --name "$SRV_NAME" --fields=status`
+  echo "status is still: $STATUS, sleeping for 15 seconds" 
+done
+
+echo "Server Ready"
+
+export VMIP=`rack servers instance get --name "$SRV_NAME" --fields=publicipv4 | cut -d $'\t' -f2`
+echo "VMIP=$VMIP"
+
+#cp $HOME/ssh/config $HOME/.ssh/config.bak
+sed -i .bak '/host '$SRV_NAME'/ {N;N;d;}' $HOME/.ssh/config
+
+cat >> $HOME/.ssh/config <<EOF
+host $SRV_NAME
+  hostname $VMIP
+  user root
+EOF
+
+ssh-keygen -f "$HOME/.ssh/known_hosts" -R $VMIP
+
+# Touch the server to remove StrictHostKeyChecking warnings"
+ssh -o "StrictHostKeyChecking no" root@$VMIP "echo Remove StrictHostKeyChecking warning"
