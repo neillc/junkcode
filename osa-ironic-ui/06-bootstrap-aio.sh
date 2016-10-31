@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+source "$(dirname "$0")/common_functions.sh"
+header $0
+
 
 #######################################################################
 #
@@ -26,3 +29,5 @@ if ! [ -z "$CONFIGURE_SEARCHLIGHT" ]; then
     cp /opt/openstack-ansible/etc/openstack_deploy/conf.d/searchlight.yml.aio /etc/openstack_deploy/conf.d/searchlight.yml
 EOF2
 fi
+
+footer $0

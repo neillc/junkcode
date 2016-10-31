@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+source "$(dirname "$0")/common_functions.sh"
+header $0
+
 #######################################################################
 #
 # script to do the gunt work of building a working aio
@@ -18,3 +21,5 @@ ssh root@$VMIP <<EOF
 cd /opt/openstack-ansible
 ./scripts/run-playbooks.sh | tee ~/run-playbooks.log
 EOF
+
+footer $0

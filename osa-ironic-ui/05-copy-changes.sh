@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+source "$(dirname "$0")/common_functions.sh"
+header $0
+
 
 #######################################################################
 #
@@ -48,3 +51,11 @@ scp $LOCALDIR/openstack-ansible/playbooks/setup-openstack.yml \
 
 scp $LOCALDIR/openstack-ansible/playbooks/inventory/group_vars/searchlight_all.yml \
   $REMOTE/playbooks/inventory/group_vars/searchlight_all.yml
+
+echo scp $LOCALDIR/openstack-ansible/etc/openstack_deploy/user_secrets.yml \
+  $REMOTE/etc/openstack_deploy/user_secrets.yml
+
+scp $LOCALDIR/openstack-ansible/etc/openstack_deploy/user_secrets.yml \
+  $REMOTE/etc/openstack_deploy/user_secrets.yml
+
+footer $0

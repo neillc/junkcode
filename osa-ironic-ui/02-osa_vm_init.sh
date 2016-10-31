@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+source "$(dirname "$0")/common_functions.sh"
+header $0
+
 if ! [ -z "$1" ]; then
   VMIP=$1
 fi
@@ -24,3 +27,5 @@ do
   ssh root@$VMIP 'echo host is up'
 done
 
+
+footer $0

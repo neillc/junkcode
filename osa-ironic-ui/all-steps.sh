@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
+source "$(dirname "$0")/common_functions.sh"
+header $0
 
-export LOCALDIR=/Users/neill/Dropbox/Projects/
+
 export CONFIGURE_SEARCHLIGHT=YES
 
 if ! [ -z ${1+x} ]; then
@@ -9,6 +11,11 @@ fi
 
 if [ -z "$SRV_NAME" ]; then
   echo "you must specify a server name either by passing a parameter or setting SRV_NAME"
+  exit 1
+fi
+
+if [ -z "$LOCALDIR" ]; then
+  echo "you must provide a LOCALDIR environment variable"
   exit 1
 fi
 
@@ -24,3 +31,5 @@ echo "VMIP=$VMIP"
 05-copy-changes.sh
 06-bootstrap-aio.sh
 07-run-playbooks.sh
+
+footer $0

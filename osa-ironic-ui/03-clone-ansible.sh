@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+source "$(dirname "$0")/common_functions.sh"
+header $0
+
 #######################################################################
 #
 # script to do the gunt work of building a working aio
@@ -25,3 +28,5 @@ git clone https://git.openstack.org/openstack/openstack-ansible /opt/openstack-a
 # git checkout 13.1.2
 
 EOF
+
+footer $0

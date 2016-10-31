@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+source "$(dirname "$0")/common_functions.sh"
+header $0
+
 #######################################################################
 #
 # script to do the gunt work of building a working aio
@@ -31,3 +34,5 @@ cd /opt/openstack-ansible
 ./scripts/bootstrap-ansible.sh | tee ~/bootstrap-ansible.log
 EOF
 
+
+footer $0

@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+source "$(dirname "$0")/common_functions.sh"
+header $0
+
 if ! [ -z ${1+x} ]; then
   export SRV_NAME=${1}
 fi
@@ -14,7 +17,7 @@ export VMIP=`rack servers instance get --name "$SRV_NAME" --fields=publicipv4 | 
 echo "VMIP=$VMIP"
 
 echo "Removing server from ssh config"
-sed -i .bak '/host '$SRV_NAME'/ {N;N;d;}' $HOME/.ssh/config
+sed -i.bak '/host '$SRV_NAME'/ {N;N;d;}' $HOME/.ssh/config
 
 echo "Removing ssh key from known_hosts"
 ssh-keygen -f "$HOME/.ssh/known_hosts" -R $VMIP
@@ -30,3 +33,5 @@ while [ "$STATUS" == "Status	ACTIVE" ]; do
 done
 
 echo "Server Deleted"
+
+footer $0
