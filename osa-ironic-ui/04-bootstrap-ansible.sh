@@ -23,8 +23,10 @@ fi
 
 REMOTE=root@$VMIP:/opt/openstack-ansible
 
-scp $LOCALDIR/openstack-ansible/ansible-role-requirements.yml \
-    $REMOTE/ansible-role-requirements.yml
+if [ -z "$VANILLA" ]; then
+    scp $LOCALDIR/openstack-ansible/ansible-role-requirements.yml \
+        $REMOTE/ansible-role-requirements.yml
+fi
 
 echo "Bootstrapping ansible on $VMIP"
 

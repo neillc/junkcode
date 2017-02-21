@@ -25,7 +25,7 @@ git clone https://git.openstack.org/openstack/openstack-ansible /opt/openstack-a
 
 
 # Checkout a known working version because HEAD is often broken
-# git checkout 13.1.2
+git checkout $GITBRANCH
 
 EOF
 

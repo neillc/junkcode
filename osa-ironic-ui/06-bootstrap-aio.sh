@@ -23,7 +23,7 @@ cd /opt/openstack-ansible
 ./scripts/bootstrap-aio.sh | tee ~/bootstrap-aio
 EOF
 
-if ! [ -z "$CONFIGURE_SEARCHLIGHT" ]; then
+if ! [ -z "$CONFIGURE_SEARCHLIGHT" && "$CONFIGURE_SEARCHLIGHT=="YES" ]; then
   echo "Configuring searchlight"
   ssh root@$VMIP <<EOF2
     cp /opt/openstack-ansible/etc/openstack_deploy/conf.d/searchlight.yml.aio /etc/openstack_deploy/conf.d/searchlight.yml
