@@ -1,37 +1,81 @@
 #!/usr/bin/env bash
 source "$(dirname "$0")/common_functions.sh"
+
+#-----------------------------------------------------------------------------------------------------------------------
+#
+# Usage
+#
+#-----------------------------------------------------------------------------------------------------------------------
+usage() {
+  echo -e "\nUsage: $0 -s <server-name> " 1>&2
+  echo -e "\nOptions:\n"
+  echo -e "    -s    Name of the new server, overriden by SRV_NAME environment variable"
+  echo -e "\n"
+    exit 1
+}
+
+#-----------------------------------------------------------------------------------------------------------------------
+#
+# Delete a server
+#
+#-----------------------------------------------------------------------------------------------------------------------
+deleteServer() {
+    echo "Deleting server $1"
+
+    export VMIP=`rack servers instance get --name "$1" --fields=publicipv4 | cut -d $'\t' -f2`
+
+    if [ ! "$VMIP" ]; then
+      echo "Could not find server - skipping"
+      continue
+    fi
+
+    VMUUID=`rack servers instance list | grep "$1" | cut -f1`
+    DISKUUID=`rack block-storage volume list | grep "System disk for $VMUUID" | cut -f1`
+
+    echo "Removing server from ssh config"
+    sed -i.bak '/host '$1'/ {N;N;d;}' $HOME/.ssh/config
+
+    echo "Removing ssh key from known_hosts"
+    ssh-keygen -f "$HOME/.ssh/known_hosts" -R $1
+
+    rack servers instance delete --name="$1"
+
+    STATUS=`rack servers instance get --name "$1" --fields=status`
+    while [ "$STATUS" == "Status	ACTIVE" ]; do
+      sleep 15
+      STATUS=`rack servers instance get --name "$1" --fields=status`
+      echo "status is still: $STATUS, sleeping for 15 seconds"
+    done
+
+    echo Deleting System Disk ${DISKUUID}
+    rack block-storage volume delete --id ${DISKUUID}
+
+    echo "Server ${1} Deleted"
+}
+
+
+
+#-----------------------------------------------------------------------------------------------------------------------
+#
+# Start of main script
+#
+#-----------------------------------------------------------------------------------------------------------------------
 header $0
 
 if ! [ -z ${1+x} ]; then
-  export SRV_NAME=${1}
+    SRV_NAME=$@
 fi
 
 if [ -z "$SRV_NAME" ]; then
   echo "you must specify a server name either by passing a parameter or setting SRV_NAME"
-  exit 1
+  usage
 fi
 
-echo "Deleting server"
-
-export VMIP=`rack servers instance get --name "$SRV_NAME" --fields=publicipv4 | cut -d $'\t' -f2`
-echo "VMIP=$VMIP"
-
-echo "Removing server from ssh config"
-sed -i.bak '/host '$SRV_NAME'/ {N;N;d;}' $HOME/.ssh/config
-
-echo "Removing ssh key from known_hosts"
-ssh-keygen -f "$HOME/.ssh/known_hosts" -R $VMIP
-
-rack servers instance delete --name="$SRV_NAME"
-
-STATUS=`rack servers instance get --name "$SRV_NAME" --fields=status`
-echo status is $STATUS
-while [ "$STATUS" == "Status	ACTIVE" ]; do
-  sleep 15
-  STATUS=`rack servers instance get --name "$SRV_NAME" --fields=status`
-  echo "status is still: $STATUS, sleeping for 15 seconds" 
+echo ${SRV_NAME}
+for n in $@ ;do
+    deleteServer $n
 done
 
-echo "Server Deleted"
+rack block-storage volume list | grep "available"
 
 footer $0
