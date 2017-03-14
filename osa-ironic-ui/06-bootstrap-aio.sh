@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
-set -xeu
 
-source "$(dirname "$0")/common_functions.sh"
+source "$(dirname "$0")/common_functions.sh
 
 #-----------------------------------------------------------------------------------------------------------------------
 #
