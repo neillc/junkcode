@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-source "$(dirname "$0")/common_functions.sh
+source $(dirname "$0")/common_functions.sh
 
 #-----------------------------------------------------------------------------------------------------------------------
 #
@@ -66,7 +66,7 @@ EOF
         cp /opt/openstack-ansible/etc/openstack_deploy/conf.d/searchlight.yml.aio \
            /etc/openstack_deploy/conf.d/searchlight.yml
 EOF2
-fi
+    fi
 }
 
 header $0

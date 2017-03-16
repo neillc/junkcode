@@ -96,20 +96,20 @@ delete-server ${SRV_NAME}
 create_options="-s ${SRV_NAME}"
 
 if [[ ${LOCALDIR} ]]; then
-    create_options = "${create_options} -l ${LOCALDIR}"
+    create_options="${create_options} -l ${LOCALDIR}"
 fi
 
 if [[ ${OSA_BRANCH} ]]; then
-    create_options = "${create_options} -b ${OSA_BRANCH}"
+    create_options="${create_options} -b ${OSA_BRANCH}"
 fi
 
 if [[ ${CONFIGURE_SEARCHLIGHT} ]]; then
-    create_options = "${create_options} -c"
+    create_options="${create_options} -c"
 fi
 
 if [[ ${FAILFAST} ]]; then
-    create_options = "${create_options} -f"
+    create_options="${create_options} -f"
 fi
 
 
-all-steps ${create_options}
+all-steps.sh ${create_options}
